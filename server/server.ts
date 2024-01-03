@@ -1,10 +1,12 @@
 import { app } from './app';
-require("dotenv").config()
+import connectDB from './utils/db';
+
 
 
 
 //create our server
 
 app.listen(process.env.PORT, () => {
+    connectDB()
     console.log(`server is connected with port ${process.env.PORT} `)
 })
