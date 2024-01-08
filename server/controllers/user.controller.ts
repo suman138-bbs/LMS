@@ -7,6 +7,9 @@ import userModel, { Iuser } from "../models/user.model";
 import ErrorHandler from "../utils/ErrorHandler";
 import CatchAsyncError from "../middlewares/catchAsyncError";
 import sendMail from "../utils/sendMail";
+import { sendToken } from "../utils/jwt";
+
+/**Registration */
 
 interface IRegistrationBody {
   name: string;
@@ -73,7 +76,7 @@ const createActivationToken = (user: any): IactivationToken => {
   return { token, activationCode };
 };
 
-//activate user
+/**Activate user */
 
 interface IactivationRequest {
   activation_token: string;
@@ -104,6 +107,50 @@ export const activateUser = CatchAsyncError(
       res.status(200).json({
         success: true,
       });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
+    }
+  }
+);
+
+/**Login user */
+
+interface ILoginUser {
+  email: string;
+  password: string;
+}
+
+export const loginUser = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { email, password } = req.body as ILoginUser;
+      if (!email && !password) {
+        return next(new ErrorHandler("Please enter email and password", 400));
+      }
+
+      const user = await userModel.findOne({ email }).select("+password");
+      if (!user) {
+        return next(new ErrorHandler("Invalid Email or Password", 400));
+      }
+      const isPasswordMatch = user?.comparePassword(password);
+
+      if (!isPasswordMatch) {
+        return next(new ErrorHandler("Incorrect Password", 400));
+      }
+
+      sendToken(user, 200, res);
+    } catch (error: any) {}
+  }
+);
+
+/**Logout User */
+
+export const logOutUser = CatchAsyncError(
+  (req: Request, res: Response, next: NextFunction) => {
+    try {
+      res.cookie("access_token", "", { maxAge: 1 });
+      res.cookie("refresh_token", "", { maxAge: 1 });
+      res.status(200).json({ success: true, message: "Logged successfully" });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
     }
