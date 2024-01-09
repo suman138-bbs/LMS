@@ -8,6 +8,7 @@ import ErrorHandler from "../utils/ErrorHandler";
 import CatchAsyncError from "../middlewares/catchAsyncError";
 import sendMail from "../utils/sendMail";
 import { sendToken } from "../utils/jwt";
+import { redis } from "../utils/redis";
 
 /**Registration */
 
@@ -150,6 +151,7 @@ export const logOutUser = CatchAsyncError(
     try {
       res.cookie("access_token", "", { maxAge: 1 });
       res.cookie("refresh_token", "", { maxAge: 1 });
+      redis.del(req.user?._id);
       res.status(200).json({ success: true, message: "Logged successfully" });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
