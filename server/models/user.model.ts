@@ -40,7 +40,6 @@ const userSchema = new Schema<Iuser>(
     },
     password: {
       type: String,
-      required: [true, "Please enter your password"],
       minlength: [6, "Password must be a six character"],
       select: false,
     },
@@ -77,10 +76,14 @@ userSchema.pre<Iuser>("save", async function (next) {
 
 userSchema.methods = {
   SignAccessToken: async function () {
-    return Jwt.sign({ id: this._id }, process.env.ACCESS_TOKEN || "");
+    return Jwt.sign({ id: this._id }, process.env.ACCESS_TOKEN || "", {
+      expiresIn: "5m",
+    });
   },
   SignRefToken: async function () {
-    return Jwt.sign({ id: this._id }, process.env.REFRESH_TOKEN || "");
+    return Jwt.sign({ id: this._id }, process.env.REFRESH_TOKEN || "", {
+      expiresIn: "7d",
+    });
   },
   comparePassword: async function (enteredPassword: string): Promise<boolean> {
     return await bcrypt.compare(enteredPassword, this.password);

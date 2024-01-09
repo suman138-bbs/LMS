@@ -22,7 +22,7 @@ export const isAuthenticate = CatchAsyncError(
     const decoded = Jwt.verify(
       access_token,
       process.env.ACCESS_TOKEN as string
-    ) as MyJwtPayload;
+    ) as JwtPayload;
 
     if (!decoded) {
       return next(new ErrorHandler("Invalid Acess token", 400));
